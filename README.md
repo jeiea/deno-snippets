@@ -5,13 +5,13 @@ A collection of small, copy-friendly Deno utility snippets.
 ## Installation
 
 ```sh
-deno add jsr:@jeiea/deno-snippets
+deno add jsr:@jeiea/snippets
 ```
 
 or
 
 ```ts
-import { runGit, runGitOrThrow } from "jsr:@jeiea/deno-snippets";
+import { runGit, runGitOrThrow } from "jsr:@jeiea/snippets";
 ```
 
 ## Snippets
@@ -23,7 +23,7 @@ Run `git` as a subprocess with `GIT_*` environment variables stripped, so that p
 invocations and corrupt unrelated repositories.
 
 ```ts ignore
-import { runGit, runGitOrThrow } from "@jeiea/deno-snippets";
+import { runGit, runGitOrThrow } from "@jeiea/snippets";
 
 // Branching on success
 const status = await runGit(["status", "--porcelain"]);
