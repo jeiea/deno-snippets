@@ -19,49 +19,34 @@ Deno.test("runGitOrThrow throws on non-zero exit", async () => {
 });
 
 Deno.test("isolates child git from parent GIT_DIR / GIT_INDEX_FILE", async () => {
-  const outer = await makeTempRepo();
-  const inner = await makeTempRepo();
-  try {
-    // Simulate running inside a pre-commit hook of `outer`: parent env points
-    // git at outer/.git. Without isolation, `git -C inner add` would write to
-    // outer's index.
-    Deno.env.set("GIT_DIR", `${outer.path}/.git`);
-    Deno.env.set("GIT_INDEX_FILE", `${outer.path}/.git/index`);
-    try {
-      await Deno.writeTextFile(`${inner.path}/marker.txt`, "hello\n");
-      await runGitOrThrow(["-C", inner.path, "add", "marker.txt"]);
-      await runGitOrThrow([
-        "-C",
-        inner.path,
-        "commit",
-        "-q",
-        "--no-verify",
-        "-m",
-        "init",
-      ]);
+  await using outer = await makeTempRepo();
+  await using inner = await makeTempRepo();
+  // Simulate running inside a pre-commit hook of `outer`: parent env points
+  // git at outer/.git. Without isolation, `git -C inner add` would write to
+  // outer's index.
+  using _envGuard = setEnv({
+    GIT_DIR: `${outer.path}/.git`,
+    GIT_INDEX_FILE: `${outer.path}/.git/index`,
+  });
 
-      const outerIndex = await runGit(["-C", outer.path, "ls-files"]);
-      assertEquals(outerIndex.ok, true);
-      assertEquals(outerIndex.stdout, "", "outer index must remain empty");
+  await Deno.writeTextFile(`${inner.path}/marker.txt`, "hello\n");
+  await runGitOrThrow(["-C", inner.path, "add", "marker.txt"]);
+  await runGitOrThrow(["-C", inner.path, "commit", "-q", "--no-verify", "-m", "init"]);
 
-      const innerLog = await runGitOrThrow([
-        "-C",
-        inner.path,
-        "log",
-        "--oneline",
-      ]);
-      assertStringIncludes(innerLog.stdout, "init");
-    } finally {
-      Deno.env.delete("GIT_DIR");
-      Deno.env.delete("GIT_INDEX_FILE");
-    }
-  } finally {
-    await outer.dispose();
-    await inner.dispose();
-  }
+  const outerIndex = await runGit(["-C", outer.path, "ls-files"]);
+  assertEquals(outerIndex.ok, true);
+  assertEquals(outerIndex.stdout, "", "outer index must remain empty");
+
+  const innerLog = await runGitOrThrow(["-C", inner.path, "log", "--oneline"]);
+  assertStringIncludes(innerLog.stdout, "init");
 });
 
-async function makeTempRepo(): Promise<{ path: string; dispose: () => Promise<void> }> {
+interface TempRepo {
+  path: string;
+  [Symbol.asyncDispose](): Promise<void>;
+}
+
+async function makeTempRepo(): Promise<TempRepo> {
   const path = await Deno.makeTempDir({ prefix: "deno-snippets-git-" });
   await runGitOrThrow(["init", "-q", "-b", "main", path]);
   await runGitOrThrow(["-C", path, "config", "user.email", "t@t.com"]);
@@ -69,6 +54,22 @@ async function makeTempRepo(): Promise<{ path: string; dispose: () => Promise<vo
   await runGitOrThrow(["-C", path, "config", "commit.gpgsign", "false"]);
   return {
     path,
-    dispose: () => Deno.remove(path, { recursive: true }),
+    [Symbol.asyncDispose]: () => Deno.remove(path, { recursive: true }),
+  };
+}
+
+function setEnv(vars: Record<string, string>): Disposable {
+  const previous = new Map<string, string | undefined>();
+  for (const [key, value] of Object.entries(vars)) {
+    previous.set(key, Deno.env.get(key));
+    Deno.env.set(key, value);
+  }
+  return {
+    [Symbol.dispose]() {
+      for (const [key, prev] of previous) {
+        if (prev === undefined) Deno.env.delete(key);
+        else Deno.env.set(key, prev);
+      }
+    },
   };
 }

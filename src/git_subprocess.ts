@@ -1,32 +1,3 @@
-/**
- * Run `git` as a subprocess without inheriting `GIT_*` environment variables.
- *
- * When this code runs inside a `pre-commit` hook (or any other context where
- * git has exported `GIT_DIR`, `GIT_INDEX_FILE`, etc.), naive child invocations
- * of `git` will reuse the parent's `.git` directory and index even when given
- * `-C <other-path>`. That can corrupt the host repository's index — for
- * example, the test fixtures of an unrelated temp repo end up staged in the
- * outer commit.
- *
- * `runGit` / `runGitOrThrow` strip every `GIT_*` key from the inherited env
- * and spawn with `clearEnv: true`, so the child `git` rediscovers `.git` from
- * its working directory.
- *
- * `isolatedGitEnv` is intentionally not exported — call sites must go through
- * the helpers, otherwise it is too easy to forget the matching `clearEnv`.
- *
- * @module
- */
-
-function isolatedGitEnv(): Record<string, string> {
-  const env: Record<string, string> = {};
-  for (const [key, value] of Object.entries(Deno.env.toObject())) {
-    if (key.startsWith("GIT_")) continue;
-    env[key] = value;
-  }
-  return env;
-}
-
 export interface GitResult {
   ok: boolean;
   stdout: string;
@@ -83,4 +54,33 @@ export async function runGitOrThrow(
     throw new Error(`git ${args.join(" ")} failed: ${result.stderr}`);
   }
   return { stdout: result.stdout, stderr: result.stderr };
+}
+
+/**
+ * Run `git` as a subprocess without inheriting `GIT_*` environment variables.
+ *
+ * When this code runs inside a `pre-commit` hook (or any other context where
+ * git has exported `GIT_DIR`, `GIT_INDEX_FILE`, etc.), naive child invocations
+ * of `git` will reuse the parent's `.git` directory and index even when given
+ * `-C <other-path>`. That can corrupt the host repository's index — for
+ * example, the test fixtures of an unrelated temp repo end up staged in the
+ * outer commit.
+ *
+ * `runGit` / `runGitOrThrow` strip every `GIT_*` key from the inherited env
+ * and spawn with `clearEnv: true`, so the child `git` rediscovers `.git` from
+ * its working directory.
+ *
+ * `isolatedGitEnv` is intentionally not exported — call sites must go through
+ * the helpers, otherwise it is too easy to forget the matching `clearEnv`.
+ *
+ * @module
+ */
+
+function isolatedGitEnv(): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const [key, value] of Object.entries(Deno.env.toObject())) {
+    if (key.startsWith("GIT_")) continue;
+    env[key] = value;
+  }
+  return env;
 }
