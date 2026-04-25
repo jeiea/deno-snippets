@@ -10,7 +10,7 @@ export interface GitResult {
  *
  * @example
  * ```ts ignore
- * import { runGit } from "@jeiea/deno-snippets";
+ * import { runGit } from "@jeiea/snippets";
  *
  * const result = await runGit(["status", "--porcelain"]);
  * if (result.ok && result.stdout === "") {
@@ -40,7 +40,7 @@ export async function runGit(args: string[]): Promise<GitResult> {
  *
  * @example
  * ```ts ignore
- * import { runGitOrThrow } from "@jeiea/deno-snippets";
+ * import { runGitOrThrow } from "@jeiea/snippets";
  *
  * const { stdout } = await runGitOrThrow(["rev-parse", "HEAD"]);
  * console.log(stdout.trim());
