@@ -12,3 +12,4 @@
  * ```
  */
 export * from "./src/git_subprocess.ts";
+export * from "./src/temp_dir.ts";

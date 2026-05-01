@@ -11,7 +11,7 @@ deno add jsr:@jeiea/snippets
 or
 
 ```ts
-import { runGit, runGitOrThrow } from "jsr:@jeiea/snippets";
+import { createTempDir, runGit, runGitOrThrow } from "jsr:@jeiea/snippets";
 ```
 
 ## Snippets
@@ -34,6 +34,19 @@ if (status.ok && status.stdout === "") {
 // Assertive variant — throws on failure
 const { stdout } = await runGitOrThrow(["rev-parse", "HEAD"]);
 console.log(stdout.trim());
+```
+
+### temp_dir
+
+Create a temporary directory that is automatically removed when disposed. Wraps `Deno.makeTempDir`
+with `AsyncDisposable`, so `await using` handles cleanup.
+
+```ts ignore
+import { createTempDir } from "@jeiea/snippets";
+
+await using tmp = await createTempDir({ prefix: "work-" });
+await Deno.writeTextFile(`${tmp.path}/hello.txt`, "hi");
+// directory is removed when `tmp` goes out of scope
 ```
 
 ## License
