@@ -1,5 +1,5 @@
 import { assert } from "@std/assert";
-import { createTempDir } from "./temp_dir.ts";
+import { createTempDir } from "./temp-dir.ts";
 
 Deno.test("created directory exists on the filesystem", async () => {
   await using tmp = await createTempDir({ prefix: "snippets-test-" });

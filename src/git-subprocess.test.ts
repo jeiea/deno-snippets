@@ -1,5 +1,5 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { runGit, runGitOrThrow } from "./git_subprocess.ts";
+import { runGit, runGitOrThrow } from "./git-subprocess.ts";
 
 Deno.test("runGit returns ok=false instead of throwing on git failure", async () => {
   const result = await runGit(["no-such-subcommand-zzz"]);

@@ -1,8 +1,10 @@
 {
   "name": "@jeiea/snippets",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "exports": {
-    ".": "./mod.ts"
+    ".": "./mod.ts",
+    "./git-subprocess": "./src/git-subprocess.ts",
+    "./temp-dir": "./src/temp-dir.ts"
   },
   "license": "MIT",
   "lock": false,

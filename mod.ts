@@ -11,5 +11,5 @@
  * console.log(stdout.trim());
  * ```
  */
-export * from "./src/git_subprocess.ts";
-export * from "./src/temp_dir.ts";
+export * from "./src/git-subprocess.ts";
+export * from "./src/temp-dir.ts";
