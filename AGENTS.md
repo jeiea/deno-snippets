@@ -15,4 +15,3 @@ deno task ci          # fmt, lint, check, test, publish:check in sequence
 ## Publish
 
 Pushing to the release branch triggers publishing via GitHub workflow.
-

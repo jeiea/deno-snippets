@@ -34,9 +34,7 @@ export interface GitOptions {
  * ```
  */
 export async function runGit(args: string[], options?: GitOptions): Promise<GitResult> {
-  const env = options?.env
-    ? { ...isolatedGitEnv(), ...options.env }
-    : isolatedGitEnv();
+  const env = options?.env ? { ...isolatedGitEnv(), ...options.env } : isolatedGitEnv();
   const cmd = new Deno.Command("git", {
     args,
     stdout: "piped",
