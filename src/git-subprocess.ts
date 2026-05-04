@@ -4,6 +4,11 @@ export interface GitResult {
   stderr: string;
 }
 
+export interface GitOptions {
+  /** Extra env vars merged on top of the isolated env (overrides per key). */
+  env?: Record<string, string>;
+}
+
 /**
  * Run a git subprocess. Returns the captured output; never throws on a
  * non-zero exit code — inspect `ok` to branch.
@@ -17,13 +22,26 @@ export interface GitResult {
  *   console.log("clean working tree");
  * }
  * ```
+ *
+ * @example Force C locale for parseable output
+ * ```ts ignore
+ * import { runGit } from "@jeiea/snippets";
+ *
+ * const result = await runGit(
+ *   ["remote", "show", "origin"],
+ *   { env: { LC_ALL: "C" } },
+ * );
+ * ```
  */
-export async function runGit(args: string[]): Promise<GitResult> {
+export async function runGit(args: string[], options?: GitOptions): Promise<GitResult> {
+  const env = options?.env
+    ? { ...isolatedGitEnv(), ...options.env }
+    : isolatedGitEnv();
   const cmd = new Deno.Command("git", {
     args,
     stdout: "piped",
     stderr: "piped",
-    env: isolatedGitEnv(),
+    env,
     clearEnv: true,
   });
   const output = await cmd.output();
@@ -48,8 +66,9 @@ export async function runGit(args: string[]): Promise<GitResult> {
  */
 export async function runGitOrThrow(
   args: string[],
+  options?: GitOptions,
 ): Promise<{ stdout: string; stderr: string }> {
-  const result = await runGit(args);
+  const result = await runGit(args, options);
   if (!result.ok) {
     throw new Error(`git ${args.join(" ")} failed: ${result.stderr}`);
   }

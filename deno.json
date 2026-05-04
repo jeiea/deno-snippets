@@ -1,6 +1,6 @@
 {
   "name": "@jeiea/snippets",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "exports": {
     ".": "./mod.ts",
     "./git-subprocess": "./src/git-subprocess.ts",

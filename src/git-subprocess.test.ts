@@ -7,6 +7,17 @@ Deno.test("runGit returns ok=false instead of throwing on git failure", async ()
   assertEquals(result.stderr.length > 0, true);
 });
 
+Deno.test("runGit forwards env option to child process", async () => {
+  const sentinel = "env-propagation-test-42";
+  // Shell alias echoes a custom env var — proves the value reached the child.
+  const result = await runGit(
+    ["-c", "alias.test-env=!echo $MY_TEST_VAR", "test-env"],
+    { env: { MY_TEST_VAR: sentinel } },
+  );
+  assertEquals(result.ok, true);
+  assertStringIncludes(result.stdout, sentinel);
+});
+
 Deno.test("runGitOrThrow throws on non-zero exit", async () => {
   let threw = false;
   try {
